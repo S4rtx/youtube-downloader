@@ -34,13 +34,13 @@
             <option value="mp3">Audio (MP3)</option>
         </select>
         
-        <button onclick="downloadMedia()">Get Link</button>
+        <button onclick="generateDownloadWidget()">Get Link</button>
 
         <div id="widget-container"></div>
     </div>
 
     <script>
-        function downloadMedia() {
+        function generateDownloadWidget() {
             const urlInput = document.getElementById('url').value.trim();
             const format = document.getElementById('format').value;
             const widgetContainer = document.getElementById('widget-container');
