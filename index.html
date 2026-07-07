@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Downloader</title>
+    <!-- Web App Manifest for Mobile Installation -->
+    <meta name="theme-color" content="#ff0000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="YT Downloader">
+    
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 10vh; background-color: #f9f9f9; }
+        .container { max-width: 400px; margin: auto; padding: 30px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; }
+        input, select, button { padding: 14px; margin: 10px 0; width: 90%; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { cursor: pointer; background-color: #ff0000; color: white; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { background-color: #cc0000; }
+        
+        #result { margin-top: 20px; font-weight: bold; font-size: 18px; }
+        a.download-btn { display: inline-block; background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3); }
+        
+        /* Spinner */
+        .loader { display: none; border: 5px solid #f3f3f3; border-top: 5px solid #ff0000; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎬 YT Downloader</h1>
+        <p>Paste your link and hit download.</p>
+
+        <input type="text" id="url" placeholder="Paste YouTube URL here" required>
+        
+        <select id="format">
+            <option value="auto">Video (MP4 - Best Quality)</option>
+            <option value="audio">Audio (MP3)</option>
+        </select>
+        
+        <button onclick="downloadMedia()">Get Link</button>
+
+        <div class="loader" id="loader"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function downloadMedia() {
+            const urlInput = document.getElementById('url').value.trim();
+            const format = document.getElementById('format').value;
+            const resultDiv = document.getElementById('result');
+            const loader = document.getElementById('loader');
+
+            if (!urlInput) {
+                resultDiv.innerHTML = "<span style='color:red;'>Please enter a valid URL.</span>";
+                return;
+            }
+
+            // Reset UI
+            resultDiv.innerHTML = "";
+            loader.style.display = "block";
+
+            // Cobalt Tools API endpoint
+            const apiUrl = 'https://api.cobalt.tools/'; 
+            
+            // Payload parameters 
+            const payload = {
+                url: urlInput,
+                downloadMode: format, 
+                videoQuality: '1080', 
+                audioFormat: 'mp3' 
+            };
+
+            try {
+                // Send the POST request to the API
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                loader.style.display = "none";
+
+                // Cobalt returns the direct download link inside 'url'
+                if (data.url) {
+                    resultDiv.innerHTML = `✅ Ready! <br> <a href="${data.url}" class="download-btn" target="_blank">Download File</a>`;
+                } else if (data.text) {
+                    // API returns error messages inside 'text'
+                    resultDiv.innerHTML = `<span style='color:red;'>Error: ${data.text}</span>`;
+                } else {
+                    resultDiv.innerHTML = "<span style='color:red;'>Something went wrong. Please try again.</span>";
+                }
+
+            } catch (error) {
+                loader.style.display = "none";
+                resultDiv.innerHTML = "<span style='color:red;'>Failed to connect to the API. The public server might be down.</span>";
+            }
+        }
+    </script>
+</body>
+</html>
